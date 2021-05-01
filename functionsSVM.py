@@ -232,42 +232,46 @@ def evaluationMeasures(y_true, y_pred, mean):
     else:
         return [precision1, precision2, recall1, recall2, f1, f2, accuracy]
     
-def getBaseline(test, sampleSizes):
+def getBaseline(train, test, sampleSizes):
     y_vol = test['Loughran'][:,-1].astype(float)
     y_ret = test['Loughran'][:,-4].astype(float)
+    train_vol = train['Loughran'][:,-1].astype(float)
+    train_ret = train['Loughran'][:,-4].astype(float)
     metrics_ret = []
     metrics_vol = []
     for s in sampleSizes:
         volBool = False
         while volBool==False:
             np.random.shuffle(y_vol)
+            np.random.shuffle(train_vol)
             y_volSample = y_vol[:s]
-            if sum(y_volSample)/len(y_volSample) >= 0.5:
+            s2 = s*4
+            train_volSample = train_vol[:s2]
+            if sum(train_volSample)/len(train_volSample) >= 0.5:
                 y_volPred = np.zeros(len(y_volSample))+1
             else:
                 y_volPred = np.zeros(len(y_volSample))
-            y_volMetrics = evaluationMeasures(y_volSample, y_volPred, 0, False)
-            if y_volMetrics[-1] < 0.525:
+            y_volMetrics = evaluationMeasures(y_volSample, y_volPred, False)
+            if y_volMetrics[-1] < 0.52:
                 volBool = True
         metrics_vol.append(y_volMetrics)
         
         retBool = False
         while retBool==False:
             np.random.shuffle(y_ret)
+            np.random.shuffle(train_ret)
             y_retSample = y_ret[:s]
-            if sum(y_retSample)/len(y_retSample) >= 0.5:
+            s2 = s*4
+            train_retSample = train_ret[:s2]
+            if sum(train_retSample)/len(train_retSample) >= 0.5:
                 y_retPred = np.zeros(len(y_retSample))+1
             else:
                 y_retPred = np.zeros(len(y_retSample))
-            y_retMetrics = evaluationMeasures(y_retSample, y_retPred, 0, False)
-            if y_retMetrics[-1] < 0.525:
+            y_retMetrics = evaluationMeasures(y_retSample, y_retPred, False)
+            if y_retMetrics[-1] < 0.52:
                 retBool = True
         metrics_ret.append(y_retMetrics)
-        
-        
     return np.array(metrics_ret), np.array(metrics_vol)
-
-    
 
 def getTrainTest(train, test, name, n_train, n_test, y):
     X_train = train[name][:,2:13]
