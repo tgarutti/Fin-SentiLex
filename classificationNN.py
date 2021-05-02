@@ -14,37 +14,61 @@ drive = '/Volumes/LaCie/Data/'
 test_loc = '/Users/user/Documents/Erasmus/QFMaster/Master Thesis/data_test/'
 
 
-def update(batch_dictDF, W, stepP, stepN, stepW, m, v):
+def update(batch_dictDF, coefficients, stepP, stepN, stepCoef, m, v):
     batch_dictDF.loc['pos'] = batch_dictDF.loc['pos']-stepP
     batch_dictDF.loc['neg'] = batch_dictDF.loc['neg']-stepN
     batch_dictDF.loc['mp'] = m[0]
     batch_dictDF.loc['mn'] = m[1]
     batch_dictDF.loc['vp'] = v[0]
     batch_dictDF.loc['vn'] = v[1]
-    #W = W - np.diag(stepW)
-    return batch_dictDF, W
+    coefficients[1] = coefficients[1] - np.diag(stepCoef[0])
+    coefficients[2] = coefficients[2] - np.diag(stepCoef[1])
+    coefficients[3] = coefficients[3] - stepCoef[2]
+    return batch_dictDF, coefficients
 
-def gradientW(d1, p1p2, X, w0, w1, batch_len):
-    der0 = np.multiply(np.array([np.multiply(X[:,0],p1p2),np.multiply((-X[:,0]),p1p2)]),d1)
-    der1 = np.multiply(np.array([np.multiply((-X[:,1]),p1p2),np.multiply(X[:,1],p1p2)]),d1)
-    if w0 > 0:
-        gradw0 = -der0.sum(axis=(0,1))/batch_len
-    else:
-        gradw0 = -der0.sum(axis=(0,1))/batch_len - 2*w0
-    if w1 > 0:
-        gradw1 = -der1.sum(axis=(0,1))/batch_len
-    else:
-        gradw1 = -der1.sum(axis=(0,1))/batch_len - 2*w1   
-    return gradw0, gradw1
-
-##### DIVIDE BY GRADIENTS BY LENGTH OF BATCH
-def calculateGradients(y, y_hat, coefficients, X, N):
+def gradientsCoef(coefficients, y, y_hat, X, batch_len):
     batch_len=len(y[0,:])
-    betas = coefficients[0]
     D = coefficients[1]
     W = coefficients[2]
     C = coefficients[3]
-    sumX = X.sum(axis=0)
+    
+    h = X
+    a = h.dot(D)
+    e2a = np.exp(2*a)
+    z = (e2a-1)/(e2a+1)
+    b = z.dot(W) + C
+    
+    d1 = np.divide(y,y_hat)
+    p1p2 = np.multiply(y_hat[0,:],y_hat[1,:])
+    delta = np.array([p1p2,-p1p2])
+    
+    gradw0 = np.multiply(d1,np.multiply(delta,z[:,0])).sum(axis=(0,1))/batch_len
+    gradw1 = np.multiply(d1,-np.multiply(delta,z[:,1])).sum(axis=(0,1))/batch_len
+    
+    gradc0 = np.multiply(d1,delta).sum(axis=(0,1))/batch_len
+    gradc1 = np.multiply(d1,-delta).sum(axis=(0,1))/batch_len
+    
+    # e2h = np.exp(2*h)
+    # sech = (2*np.exp(h))/(e2h + 1)
+    
+    a2 = a 
+    a2[(a2 <=1) & (a2 >= -1)] = 1
+    a2[(a2 > 1) | (a2 < -1)] = 0
+    
+    gradd0 = np.multiply(d1,np.multiply(a2,np.multiply(delta*W[0,0], h[:,0]).T).T).sum(axis=(0,1))/batch_len
+    gradd1 = np.multiply(d1,np.multiply(a2,np.multiply(delta*W[1,1], h[:,1]).T).T).sum(axis=(0,1))/batch_len
+    
+    gradCoefs = [np.array([gradd0, gradd1]), np.array([gradw0, gradw1]), np.array([gradc0, gradc1])]
+    
+    return gradCoefs
+
+def calculateGradients(y, y_hat, coefficients, X, N):
+    batch_len=len(y[0,:])
+    D = coefficients[1]
+    W = coefficients[2]
+    C = coefficients[3]
+
+    
     d1 = np.divide(y,y_hat)
     p1p2 = np.multiply(y_hat[0,:],y_hat[1,:])
     delta = np.array([p1p2,-p1p2])
@@ -59,24 +83,27 @@ def calculateGradients(y, y_hat, coefficients, X, N):
     gradN = -derN.sum(axis=(0))    
     
     # Gradients for Coef
-    #gradw0, gradw1 = gradientW(d1, p1p2, X, w0, w1, batch_len)
+    gradCoefs = gradientsCoef(coefficients, y, y_hat, X, batch_len)
     
     grad = [gradP, gradN]
     
-    return grad
-#######
-#######
-####### FINISH THE GRADIENTS!!!!!!!!!!
+    return grad, gradCoefs
+
 def backPropagation(batch_dictDF, batch_mat, y, y_hat, coefficients, X, m, v, N):
-    grad = calculateGradients(y, y_hat, coefficients, X, N)
+    grad, gradCoefs = calculateGradients(y, y_hat, coefficients, X, N)
     gradP = (grad[0]*batch_mat.T).sum(1)/len(y[0,:])
     gradN = (grad[1]*batch_mat.T).sum(1)/len(y[0,:])
     stepP, mp, vp = fNN.adam(gradP, m[0], v[0])
     stepN, mn, vn = fNN.adam(gradN, m[1], v[1])
-    m=[mp,mn,0]
-    v=[vp,vn,0]
-    stepCoef = 0
-    batch_dictDF, W = update(batch_dictDF, coefficients, stepP, stepN, stepCoef, m, v)
+    mCoefs = m[2]
+    vCoefs = v[2]
+    stepD, mCoefs[1], vCoefs[1] = fNN.adam(gradCoefs[0], mCoefs[1], vCoefs[1])
+    stepW, mCoefs[2], vCoefs[2] = fNN.adam(gradCoefs[1], mCoefs[2], vCoefs[2])
+    stepC, mCoefs[3], vCoefs[3] = fNN.adam(gradCoefs[2], mCoefs[3], vCoefs[3])
+    stepCoef = [stepD, stepW, stepC] #Change to [0, 0, 0] to not update coefficients
+    m=[mp,mn,mCoefs]
+    v=[vp,vn,vCoefs]
+    batch_dictDF, coefficients = update(batch_dictDF, coefficients, stepP, stepN, stepCoef, m, v)
     return batch_dictDF, coefficients, m[2], v[2]
 
 def forwardPropagation(batch, batch_dict, batch_mat, coefficients):
@@ -242,4 +269,7 @@ for year in range(2007,2015):
     end = time.time()
     print(end-start)
 fd.saveFile(dictionary, drive+'dictionary_classificationNN.pckl')
+fd.saveFile(coefficients, drive+'coefficients_classificationNN.pckl')
+fd.saveFile(Ms, drive+'Ms_classificationNN.pckl')
+fd.saveFile(Vs, drive+'Vs_classificationNN.pckl')
 
