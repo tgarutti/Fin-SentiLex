@@ -7,6 +7,7 @@ import functionsNN as fNN
 import random as rd
 import collections
 import time
+
 drive = '/Volumes/LaCie/Data/'
 filename = 'LoughranMcDonald_MasterDictionary_2014.csv'
 dict_raw = pd.read_csv(drive+filename, index_col=0)
