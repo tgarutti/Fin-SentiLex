@@ -171,7 +171,7 @@ def subsampleSVM(train, test, dict_names, yValues, train_samples, test_samples, 
             forecasts[y][train_len] = fore
             results[y][train_len] = Rdf
     return forecasts, results
-                    
+            
 
 #forecasts2,results2 = subsampleSVM(train, test, dict_names, [0,1,2,3], [2000,5000,10000,20000], [400,1000,2000,4000], 1)
 #train, test = SVMDataset(dictionaries, dict_names)

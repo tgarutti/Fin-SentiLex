@@ -13,7 +13,6 @@ import time
 drive = '/Volumes/LaCie/Data/'
 test_loc = '/Users/user/Documents/Erasmus/QFMaster/Master Thesis/data_test/'
 
-
 def update(batch_dictDF, coefficients, stepP, stepN, stepCoef, m, v):
     batch_dictDF.loc['pos'] = batch_dictDF.loc['pos']-stepP
     batch_dictDF.loc['neg'] = batch_dictDF.loc['neg']-stepN

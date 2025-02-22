@@ -9,6 +9,7 @@ import random as rd
 import collections
 import time
 drive = "/Volumes/LaCie/Data/"
+
 search = []
 wc = fd.loadFile(drive+'length.pckl')
 pos10K = 0

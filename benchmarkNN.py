@@ -12,7 +12,6 @@ import collections
 import time
 drive = '/Volumes/LaCie/Data/'
 
-
 def update(batch_dictDF, W, stepP, stepN, stepW, m, v):
     batch_dictDF.loc['pos'] = batch_dictDF.loc['pos']-stepP
     batch_dictDF.loc['neg'] = batch_dictDF.loc['neg']-stepN

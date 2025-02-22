@@ -219,7 +219,6 @@ def getDescriptives():
     row_names = ['# of positive 10Ks','# of negative 10Ks','# of positive 10Qs','# of negative 10Qs','# of words in positive 10Ks','# of words in negative 10Ks','# of words in positive 10Qs','# of words in negative 10Qs']
     return pd.DataFrame(descriptives, index = row_names)
 
-
 #dataToList()
 #constructDataset()
 dictionary, CIKs = constructDictionary()

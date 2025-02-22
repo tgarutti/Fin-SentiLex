@@ -8,7 +8,6 @@ import math
 import functions10X as f10X
 from collections import defaultdict
 
-
 ## Pickle: save and load file
 def saveFile(file, filename):
     f = open(filename, 'wb')

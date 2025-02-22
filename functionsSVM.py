@@ -411,4 +411,3 @@ def plotGrid(data1, data2, name):
     #clb.set_ticklabels([0.2,0.25,0.3,0.35][::-1])
     plt.savefig(name+'.eps')
     plt.show()
-    

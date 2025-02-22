@@ -14,7 +14,6 @@ import functionsData as fd
 from collections import defaultdict
 
 
-
 ##############################################################################
 ### GENERAL TEXT SEARCH FUNCTIONS ############################################
 ### General funcitons for searching string in text with error handling

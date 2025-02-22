@@ -97,4 +97,3 @@ def getItems(text):
             result = f10X.partitionText(text, itemStr1, itemStr2)
         itemList.append([n,result])
     return itemList
-        
