@@ -214,22 +214,3 @@ pip install scikit-learn
 Additional dependencies may be required depending on the data collection and text-processing workflow.
 
 ---
-
-## Citation
-
-If you use this repository in academic work, please cite:
-
-```bibtex
-@software{garutti_finsentilex,
-  author = {Tommaso Garutti},
-  title = {Fin-SentiLex},
-  year = {2026},
-  url = {https://github.com/tgarutti/Fin-SentiLex}
-}
-```
-
----
-
-## License
-
-This repository is released for research and educational purposes. Please refer to the repository license for usage conditions.
